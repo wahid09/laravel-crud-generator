@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Http\Request;
+
+use App\Http\Controllers\ApiController;
+use App\Http\Requests\{{modelName}}Request;
+
+use App\Models\{{modelName}};
+
+class {{modelName}}Controller extends ApiController
+{
+    public function index()
+    {
+        ${{modelNamePluralLowerCase}} = {{modelName}}::latest()->get();
+        return $this->respondSuccess(${{modelNamePluralLowerCase}});
+    }
+
+    public function store({{modelName}}Request $request, {{modelName}} ${{modelNameSingularLowerCase}})
+    {
+        try {
+            ${{modelNameSingularLowerCase}}->fill($request->validated())->save();
+            $this->message = $this->message ?? '{{modelName}} Saved Successfully';
+
+            return $this->respondSuccess(${{modelNameSingularLowerCase}});
+        } catch(\Exception $exception) {
+            return $this->respondError("Invalid data - {$exception->getMessage()}", 400);
+        }
+    }
+
+    public function show({{modelName}} ${{modelNameSingularLowerCase}})
+    {
+        //${{modelNameSingularLowerCase}} = {{modelName}}::findOrFail(${{modelNameSingularLowerCase}});
+        $this->message = '{{modelName}}';
+        return $this->respondSuccess(${{modelNameSingularLowerCase}});
+    }
+
+    public function update({{modelName}}Request $request, {{modelName}} ${{modelNameSingularLowerCase}})
+    {
+        if (!${{modelNameSingularLowerCase}}) {
+            return $this->respondError("Invalid id", 400);
+        }
+
+        try {
+           //${{modelNameSingularLowerCase}} = {{modelName}}::findOrFail(${{modelNameSingularLowerCase}});
+            $this->message = '{{modelName}} Updated Successfully';
+            $this->statusCode = 200;
+
+            return $this->store($request, ${{modelNameSingularLowerCase}});
+        } catch(\Exception $exception) {
+           return $this->respondError("Invalid data - {$exception->getMessage()}", 400);
+        }
+    }
+
+    public function destroy($id)
+    {
+        if (!$id) {
+            return $this->respondError("Invalid id", 400);
+        }
+        {{modelName}}::destroy($id);
+        $this->message = '{{modelName}} Deleted Successfully';
+
+        return $this->respondNoContent();
+    }
+
+    public function datatable(Request $request)
+    {
+        ${{modelNamePluralLowerCase}} = {{modelName}}::latest();
+
+        $request->whenHas('search', function($value) use(${{modelNamePluralLowerCase}}){
+            ${{modelNamePluralLowerCase}}->where(function ($query) use ($value) {
+                //$query->where("id", "LIKE", "%$value%");
+            });
+        });
+
+        return $this->respondWithPagination(${{modelNamePluralLowerCase}});
+    }
+}
